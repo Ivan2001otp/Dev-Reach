@@ -1,7 +1,16 @@
+import 'package:code_dev_reach/app.bloc.observer.dart';
 import 'package:code_dev_reach/pages/wrapper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Bloc.observer = AppBlocObserver();
+
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform, name: 'code-dev-reach');
   runApp(const MyApp());
 }
 

@@ -9,4 +9,6 @@ class Constant {
 
   static String onlineImg =
       'https://foodish-api.com/images/biryani/biryani32.jpg';
+
+  static double profilePicRadius = 44.0;
 }

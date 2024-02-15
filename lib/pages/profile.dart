@@ -1,8 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:code_dev_reach/Constant/file.url.dart';
+import 'package:code_dev_reach/Features/Profile/Model/model.saved.post.dart';
+import 'package:code_dev_reach/Features/Profile/Widgets/profile.save.page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
+import 'package:provider/provider.dart';
 import '../widgets/line.separator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,8 +17,34 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  // late TabController _userTabController;
+  SavedPostModel model = SavedPostModel(
+      mainCategory: "Games",
+      mainTitle: "Please play this game its very good!",
+      subCategory: "RPG",
+      postedDate: DateTime.now(),
+      authorImgUrl: Constant.imgJpeg2,
+      authorName: "Eminemy");
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // _userTabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    // _userTabController.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    CollectionReference profileUsers =
+        FirebaseFirestore.instance.collection('profile_users');
+
     double width_ = MediaQuery.of(context).size.width;
     double height_ = MediaQuery.of(context).size.height;
 
@@ -65,16 +96,26 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  CircleAvatar(
-                    foregroundImage: AssetImage(Constant.imgJpeg1),
-                    backgroundImage: AssetImage(Constant.onlineImg),
-                    onBackgroundImageError: (exception, stackTrace) {
-                      print("stackTrace-> $stackTrace");
-                      print("exception->$exception");
-                    },
-                    radius: 40,
+                  Row(
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: Constant.onlineImg,
+                        imageBuilder: (context, imageProvider) {
+                          return CircleAvatar(
+                            backgroundImage: imageProvider,
+                            radius: Constant.profilePicRadius,
+                          );
+                        },
+                        fit: BoxFit.fill,
+                        progressIndicatorBuilder: (context, url, progress) {
+                          return circularWidget(Constant.imgJpeg1, 44.0);
+                        },
+                        errorWidget: (context, url, error) =>
+                            circularWidget(Constant.imgJpeg1, 44.0),
+                      ),
+                      goodNameAndUserNameWidget(context),
+                    ],
                   ),
-                  goodNameAndUserNameWidget(context),
                   SizedBox(
                     width: 8,
                   ),
@@ -90,7 +131,15 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        profileUsers
+                            .doc(DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString())
+                            .set(model)
+                            .whenComplete(
+                                () => print('log - successfully added!'));
+                      },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
@@ -125,7 +174,58 @@ class _ProfilePageState extends State<ProfilePage> {
             Padding(
               padding: EdgeInsets.zero,
               child: userPostAnalyticsWidget("122", "200", "250"),
-            )
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 10),
+              child: Align(
+                alignment: Alignment.center,
+                child: separatorUIWidget(context, width_ * 0.95,
+                    height_ * 0.005, Color.fromARGB(255, 228, 227, 227), 20),
+              ),
+            ),
+            Expanded(
+              // height: height_ * 0.53,
+              // width: width_ * 0.90,
+              child: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: DefaultTabController(
+                  length: 2,
+                  initialIndex: 0,
+                  child: Scaffold(
+                    appBar: AppBar(
+                      toolbarHeight: 0.0,
+                      centerTitle: false,
+                      bottom: TabBar(
+                        tabAlignment: TabAlignment.fill,
+                        unselectedLabelStyle: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey),
+                        indicatorColor: Colors.black,
+                        labelColor: Colors.black,
+                        // isScrollable: true,
+                        tabs: [
+                          Tab(
+                            text: 'SAVED',
+                          ),
+                          Tab(
+                            text: 'BONUSES',
+                          ),
+                        ],
+                      ),
+                    ),
+                    body: TabBarView(
+                      children: [
+                        SavedPostWidget(),
+                        Center(
+                          child: Text("Saved bonuses page"),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
