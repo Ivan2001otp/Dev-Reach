@@ -6,11 +6,12 @@ import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   // Bloc.observer = AppBlocObserver();
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform, name: 'code-dev-reach');
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
