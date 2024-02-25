@@ -7,7 +7,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../widgets/line.separator.dart';
+
+import 'dart:convert';
+
+//firebase imports
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:uuid/uuid.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -17,19 +23,28 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  late DatabaseReference _databaseReference;
+  late CollectionReference profileUsers;
   // late TabController _userTabController;
   SavedPostModel model = SavedPostModel(
       mainCategory: "Games",
-      mainTitle: "Please play this game its very good!",
+      mainTitle: "Please play this game its very good",
       subCategory: "RPG",
       postedDate: DateTime.now(),
-      authorImgUrl: Constant.imgJpeg2,
+      authorImgUrl: Constant.imgJpeg1,
       authorName: "Eminemy");
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    CollectionReference profileUsers =
+        FirebaseFirestore.instance.collection('profile_users');
+
+    _databaseReference = FirebaseDatabase.instance.ref("profiles");
+    print(_databaseReference.path);
+
     // _userTabController = TabController(length: 2, vsync: this);
   }
 
@@ -38,6 +53,12 @@ class _ProfilePageState extends State<ProfilePage> {
     // TODO: implement dispose
     super.dispose();
     // _userTabController.dispose();
+  }
+
+  @override
+  void deactivate() {
+    // TODO: implement deactivate
+    super.deactivate();
   }
 
   @override
@@ -120,46 +141,81 @@ class _ProfilePageState extends State<ProfilePage> {
                     width: 8,
                   ),
                   ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 7,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(
-                            width: 2.0,
-                            style: BorderStyle.solid,
-                            color: Colors.black,
-                          ),
+                    style: ElevatedButton.styleFrom(
+                      elevation: 7,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          width: 2.0,
+                          style: BorderStyle.solid,
+                          color: Colors.black,
                         ),
                       ),
-                      onPressed: () async {
+                    ),
+                    onPressed: () async {
+                      Map<String, dynamic> map = {
+                        "mainCategory": model.mainCategory,
+                        "mainTitle": model.mainTitle,
+                        "subCategory": model.subCategory,
+                        "postedDate": '${model.postedDate}',
+                        "authorImgUrl": model.authorImgUrl,
+                        "authorName": model.authorName
+                      };
+                      /*
+                       
                         profileUsers
                             .doc(DateTime.now()
                                 .millisecondsSinceEpoch
                                 .toString())
-                            .set(model)
+                            .set(map)
                             .whenComplete(
-                                () => print('log - successfully added!'));
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.mode_edit,
+                                () => print('log - successfully added!'))
+                            .onError((error, stackTrace) {
+                          print('log error while uploading user - $error');
+                          print(
+                              'log stackTrace while uploading user - $stackTrace');
+                        });
+                        */
+                      String uid =
+                          "${model.authorName}${DateTime.now().millisecondsSinceEpoch}";
+
+                      try {
+                        // await _databaseReference.child(uid).set(map).then(
+                        //   (value) {
+                        //     print('log -> success added.');
+                        //   },
+                        // );
+                        await FirebaseFirestore.instance
+                            .collection('PROFILES')
+                            .doc(uid)
+                            .set(map)
+                            .then((value) => print("success response"));
+                      } catch (e, st) {
+                        print("log -> error $e");
+                        print("log -> stackTrace $st");
+                      }
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.mode_edit,
+                          color: Colors.black,
+                        ),
+                        SizedBox(
+                          width: 4,
+                        ),
+                        Text(
+                          'Edit',
+                          style: TextStyle(
                             color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
                           ),
-                          SizedBox(
-                            width: 4,
-                          ),
-                          Text(
-                            'Edit',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          )
-                        ],
-                      ))
+                        )
+                      ],
+                    ),
+                  )
                 ],
               ),
             ),

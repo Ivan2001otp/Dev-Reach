@@ -44,6 +44,7 @@ class _WrapperPageState extends State<Wrapper> {
           selectedItemColor: Colors.black,
           currentIndex: _currentIndex,
           onTap: (value) {
+            
             setState(() {
               _currentIndex = value;
             });
